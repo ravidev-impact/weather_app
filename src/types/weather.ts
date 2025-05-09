@@ -6,6 +6,16 @@ export interface WeatherData {
   humidity: number;
   windSpeed: number;
   feelsLike: number;
+  country?: string;
+  sunrise?: number;
+  sunset?: number;
+}
+
+export interface ForecastDay {
+  day: string;
+  temperature: number;
+  condition: string;
+  icon: string;
 }
 
 export interface WeatherState {

@@ -7,6 +7,9 @@ import {
   Text,
   FlatList,
   Platform,
+  ScrollView,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
@@ -45,15 +48,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onChangeText(validText);
   };
 
-  const handleFocus = (focused: boolean) => {
-    setIsFocused(focused);
-    onFocusChange?.(focused);
+  const handleFocus = (_e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    setIsFocused(true);
+    onFocusChange?.(true);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setIsFocused(false);
+      onFocusChange?.(false);
+    }, 200);
+  };
+
+  const handleSubmit = () => {
+    onSubmit();
+  };
+
+  const handleClear = () => {
+    onChangeText('');
   };
 
   const renderSuggestion = ({item}: {item: string}) => (
     <TouchableOpacity
       style={styles.suggestionItem}
-      onPress={() => handleSelectSuggestion(item)}>
+      onPress={() => handleSelectSuggestion(item)}
+      testID={`suggestion-item-${item}`}>
       <Icon
         name="time-outline"
         size={20}
@@ -68,40 +87,53 @@ const SearchBar: React.FC<SearchBarProps> = ({
     <View style={styles.container}>
       <View
         style={[styles.searchContainer, error && styles.searchContainerError]}>
-        <Icon name="search" size={20} color="#fff" style={styles.searchIcon} />
         <TextInput
-          style={styles.input}
           placeholder="Search city..."
-          placeholderTextColor="rgba(255, 255, 255, 0.6)"
+          placeholderTextColor="rgba(255, 255, 255, 0.7)"
+          style={styles.input}
           value={value}
           onChangeText={handleTextChange}
-          onSubmitEditing={onSubmit}
-          onFocus={() => handleFocus(true)}
-          onBlur={() => {
-            setTimeout(() => handleFocus(false), 200);
-          }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onSubmitEditing={handleSubmit}
+          returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="words"
+          testID="search-input"
         />
-        {value.length > 0 && (
-          <TouchableOpacity onPress={() => onChangeText('')}>
-            <Icon name="close-circle" size={20} color="#fff" />
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={handleSubmit}
+          activeOpacity={0.7}
+          testID="search-button">
+          <Icon name="search" size={24} color="#fff" />
+        </TouchableOpacity>
+        {value !== '' && (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClear}
+            testID="clear-button">
+            <Icon name="close" size={20} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
       {isFocused && searchHistory.length > 0 && (
-        <View style={styles.suggestionsContainer}>
+        <View
+          style={styles.suggestionsContainer}
+          testID="suggestions-container">
           <Text style={styles.suggestionsTitle}>Recent Searches</Text>
           <View style={styles.suggestionsListContainer}>
-            <FlatList
-              data={searchHistory}
-              renderItem={renderSuggestion}
-              keyExtractor={item => item}
+            <ScrollView
+              style={styles.suggestionsScroll}
               keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={true}
-              bounces={true}
-              nestedScrollEnabled={true}
-              scrollEnabled={true}
-            />
+              testID="suggestions-scroll">
+              <FlatList
+                data={searchHistory}
+                renderItem={renderSuggestion}
+                keyExtractor={item => item}
+              />
+            </ScrollView>
           </View>
         </View>
       )}
@@ -113,27 +145,34 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     paddingHorizontal: 16,
+    paddingTop: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
+    borderRadius: 50,
+    paddingHorizontal: 24,
+    height: 55,
+    justifyContent: 'space-between',
   },
   searchContainerError: {
     borderWidth: 1,
     borderColor: '#ff6b6b',
   },
-  searchIcon: {
-    marginRight: 8,
-  },
   input: {
     flex: 1,
     color: '#fff',
-    fontSize: 16,
-    height: '100%',
+    fontSize: 18,
+    paddingRight: 10,
+    fontWeight: '400',
+  },
+  searchButton: {
+    padding: 5,
+  },
+  clearButton: {
+    padding: 5,
+    marginRight: 8,
   },
   errorText: {
     color: '#ff6b6b',
@@ -143,23 +182,23 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     position: 'absolute',
-    top: 56,
+    top: 85,
     left: 16,
     right: 16,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 12,
-    padding: 8,
+    borderRadius: 16,
+    padding: 12,
     maxHeight: 200,
-    zIndex: 1000,
+    zIndex: 9999,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
       },
       android: {
-        elevation: 5,
+        elevation: 8,
       },
     }),
   },
@@ -168,23 +207,26 @@ const styles = StyleSheet.create({
   },
   suggestionsTitle: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 10,
     paddingHorizontal: 8,
   },
   suggestionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   suggestionIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   suggestionText: {
     color: '#fff',
     fontSize: 16,
+  },
+  suggestionsScroll: {
+    height: 150,
   },
 });
 

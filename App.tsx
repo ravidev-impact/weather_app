@@ -12,6 +12,7 @@ import {Provider} from 'react-redux';
 import {store} from './src/store';
 import HomeScreen from './src/screens/HomeScreen';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {StatusBar} from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,22 +20,17 @@ const App = () => {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
         <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                title: 'Weather App',
-                headerStyle: {
-                  backgroundColor: '#056ca3',
-                },
-                headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
-              }}
-            />
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+            }}>
+            <Stack.Screen name="Home" component={HomeScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

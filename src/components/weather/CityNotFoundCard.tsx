@@ -4,8 +4,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 const CityNotFoundCard: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <Icon name="location" size={64} color="#fff" style={styles.icon} />
+    <View style={styles.container} testID="city-not-found-card">
+      <Icon name="location-off" size={80} color="#fff" />
       <Text style={styles.title}>City Not Found</Text>
       <Text style={styles.message}>
         We couldn't find the city you're looking for. Please check the spelling
@@ -17,21 +17,18 @@ const CityNotFoundCard: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-    padding: 24,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
-  icon: {
-    marginBottom: 16,
+    paddingHorizontal: 30,
+    paddingVertical: 50,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginTop: 20,
+    marginBottom: 10,
   },
   message: {
     fontSize: 16,

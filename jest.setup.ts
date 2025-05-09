@@ -1,12 +1,40 @@
 import {jest} from '@jest/globals';
 import type {ComponentType} from 'react';
 
-// Mock the react-native-reanimated library
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
-});
+// Mock the necessary modules for testing
+
+// Mock for react-native-reanimated
+jest.mock('react-native-reanimated', () => ({
+  default: {
+    call: () => {},
+    createAnimatedComponent: (component: ComponentType<any>) => component,
+    View: 'AnimatedView',
+    Text: 'AnimatedText',
+    Image: 'AnimatedImage',
+    ScrollView: 'AnimatedScrollView',
+    FlatList: 'AnimatedFlatList',
+    useSharedValue: (initial: any) => ({value: initial}),
+    useAnimatedStyle: () => ({}),
+    withTiming: (toValue: any) => toValue,
+    withSpring: (toValue: any) => toValue,
+  },
+}));
+
+// Mock vector icons
+jest.mock('react-native-vector-icons/Ionicons', () => 'Icon');
+
+// Mock the BlurView component
+jest.mock('@react-native-community/blur', () => ({
+  BlurView: 'BlurView',
+}));
+
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  setItem: jest.fn(() => Promise.resolve()),
+  getItem: jest.fn(() => Promise.resolve(null)),
+  removeItem: jest.fn(() => Promise.resolve()),
+  clear: jest.fn(() => Promise.resolve()),
+}));
 
 // Mock the react-native/Libraries/Animated/NativeAnimatedHelper
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
