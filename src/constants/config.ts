@@ -1,8 +1,6 @@
-import {OPENWEATHER_API_KEY} from '@env';
-
 export const API_CONFIG = {
   BASE_URL: 'https://api.openweathermap.org/data/2.5',
-  API_KEY: OPENWEATHER_API_KEY,
+  API_KEY: '80c56c23610276039f7055835322e769',
   UNITS: 'metric',
 };
 

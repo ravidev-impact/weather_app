@@ -27,7 +27,7 @@ const App = () => {
               options={{
                 title: 'Weather App',
                 headerStyle: {
-                  backgroundColor: '#007AFF',
+                  backgroundColor: '#056ca3',
                 },
                 headerTintColor: '#fff',
                 headerTitleStyle: {

@@ -10,6 +10,7 @@ class WeatherService {
   private constructor() {
     this.baseURL = API_CONFIG.BASE_URL;
     this.apiKey = API_CONFIG.API_KEY || '';
+    console.log('API_KEY being used:', this.apiKey);
   }
 
   public static getInstance(): WeatherService {
@@ -21,15 +22,31 @@ class WeatherService {
 
   private async fetchWeatherData(city: string): Promise<any> {
     try {
-      const response = await axios.get(`${this.baseURL}/weather`, {
+      console.log('Fetching weather for:', city);
+      const url = `${this.baseURL}/weather`;
+      console.log('Request URL:', url);
+      console.log('Request params:', {
+        q: city,
+        appid: this.apiKey ? this.apiKey.substring(0, 4) + '...' : 'missing', // Only show part of the key for security
+        units: API_CONFIG.UNITS,
+      });
+
+      const response = await axios.get(url, {
         params: {
           q: city,
           appid: this.apiKey,
           units: API_CONFIG.UNITS,
         },
       });
+
+      console.log('Response status:', response.status);
       return response.data;
     } catch (error: any) {
+      console.error('Weather API error:', error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
       throw this.handleError(error);
     }
   }
@@ -50,6 +67,7 @@ class WeatherService {
 
   public async getWeatherByCity(city: string): Promise<WeatherData> {
     const data = await this.fetchWeatherData(city);
+    console.log('data', data);
     return {
       city: data.name,
       temperature: Math.round(data.main.temp),
