@@ -11,7 +11,8 @@ import {
   NativeSyntheticEvent,
   TextInputFocusEventData,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Feather';
+import Icons from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../store';
 
@@ -74,14 +75,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
     <TouchableOpacity
       style={styles.suggestionItem}
       onPress={() => handleSelectSuggestion(item)}
-      testID={`suggestion-item-${item}`}>
+      testID={`suggestion-item-${item}`}
+      activeOpacity={0.7}>
+      <Text style={styles.suggestionText}>{item}</Text>
       <Icon
-        name="time-outline"
+        name="arrow-up-right"
         size={20}
         color="#fff"
-        style={styles.suggestionIcon}
+        style={styles.suggestionArrowIcon}
       />
-      <Text style={styles.suggestionText}>{item}</Text>
     </TouchableOpacity>
   );
 
@@ -116,7 +118,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             style={styles.clearButton}
             onPress={handleClear}
             testID="clear-button">
-            <Icon name="close" size={20} color="#fff" />
+            <Icons name="close" size={20} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
@@ -217,13 +219,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 4,
+    justifyContent: 'space-between',
   },
-  suggestionIcon: {
-    marginRight: 12,
+  suggestionArrowIcon: {
+    marginLeft: 12,
   },
   suggestionText: {
     color: '#fff',
     fontSize: 16,
+    flex: 1,
   },
   suggestionsScroll: {
     height: 150,
