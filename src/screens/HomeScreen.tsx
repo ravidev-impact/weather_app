@@ -131,8 +131,11 @@ const HomeScreen: React.FC = () => {
     loadHistory();
   }, [dispatch, historyError]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setError(undefined);
+
+    // Always close suggestions when search is submitted
+    setIsSearchFocused(false);
 
     if (!searchQuery.trim()) {
       setError('Please enter a city name');
@@ -140,25 +143,25 @@ const HomeScreen: React.FC = () => {
     }
 
     const trimmedQuery = searchQuery.trim();
-    dispatch(fetchWeather(trimmedQuery));
-    dispatch(setLastSearchedCity(trimmedQuery));
+    const resultAction = await dispatch(fetchWeather(trimmedQuery));
+    if (fetchWeather.fulfilled.match(resultAction)) {
+      dispatch(setLastSearchedCity(trimmedQuery));
+      if (searchHistory) {
+        const updatedHistory =
+          trimmedQuery !== ''
+            ? [
+                trimmedQuery,
+                ...searchHistory.filter(city => city !== trimmedQuery),
+              ].slice(0, 5)
+            : searchHistory;
 
-    // Save the updated search history
-    if (searchHistory) {
-      const updatedHistory =
-        trimmedQuery !== ''
-          ? [
-              trimmedQuery,
-              ...searchHistory.filter(city => city !== trimmedQuery),
-            ].slice(0, 5)
-          : searchHistory;
-
-      dispatch(
-        saveSearchHistory({
-          city: trimmedQuery,
-          history: updatedHistory,
-        }),
-      );
+        dispatch(
+          saveSearchHistory({
+            city: trimmedQuery,
+            history: updatedHistory,
+          }),
+        );
+      }
     }
   };
 
@@ -223,7 +226,7 @@ const HomeScreen: React.FC = () => {
                   onChangeText={setSearchQuery}
                   onSubmit={handleSearch}
                   error={error}
-                  onFocusChange={setIsSearchFocused}
+                  // onFocusChange={setIsSearchFocused}
                 />
               </View>
               {!isSearchFocused && (

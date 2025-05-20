@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   TextInput,
@@ -31,6 +31,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onFocusChange,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
   const {searchHistory} = useSelector(
     (state: RootState) => state.searchHistory,
   );
@@ -61,6 +62,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleSubmit = () => {
+    inputRef.current?.blur();
     onSubmit();
   };
 
@@ -100,6 +102,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           autoCorrect={false}
           autoCapitalize="words"
           testID="search-input"
+          ref={inputRef}
         />
         <TouchableOpacity
           style={styles.searchButton}
@@ -124,16 +127,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
           testID="suggestions-container">
           <Text style={styles.suggestionsTitle}>Recent Searches</Text>
           <View style={styles.suggestionsListContainer}>
-            <ScrollView
+            <FlatList
               style={styles.suggestionsScroll}
+              data={searchHistory}
+              renderItem={renderSuggestion}
+              keyExtractor={item => item}
               keyboardShouldPersistTaps="handled"
-              testID="suggestions-scroll">
-              <FlatList
-                data={searchHistory}
-                renderItem={renderSuggestion}
-                keyExtractor={item => item}
-              />
-            </ScrollView>
+            />
           </View>
         </View>
       )}

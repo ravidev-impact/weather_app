@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const CityNotFoundCard: React.FC = () => {
   return (
     <View style={styles.container} testID="city-not-found-card">
-      <Icon name="location-off" size={80} color="#fff" />
+      <Icon name="location-outline" size={80} color="#fff" />
       <Text style={styles.title}>City Not Found</Text>
       <Text style={styles.message}>
         We couldn't find the city you're looking for. Please check the spelling
