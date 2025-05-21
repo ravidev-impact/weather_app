@@ -131,34 +131,37 @@ const HomeScreen: React.FC = () => {
     loadHistory();
   }, [dispatch, historyError]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (query?: string) => {
     setError(undefined);
-
-    // Always close suggestions when search is submitted
     setIsSearchFocused(false);
 
-    if (!searchQuery.trim()) {
+    const searchValue = (query ?? searchQuery).trim();
+    if (!searchValue) {
       setError('Please enter a city name');
       return;
     }
 
-    const trimmedQuery = searchQuery.trim();
-    const resultAction = await dispatch(fetchWeather(trimmedQuery));
+    const resultAction = await dispatch(fetchWeather(searchValue));
     if (fetchWeather.fulfilled.match(resultAction)) {
-      dispatch(setLastSearchedCity(trimmedQuery));
+      dispatch(setLastSearchedCity(searchValue));
       if (searchHistory) {
-        const updatedHistory =
-          trimmedQuery !== ''
-            ? [
-                trimmedQuery,
-                ...searchHistory.filter(city => city !== trimmedQuery),
-              ].slice(0, 5)
-            : searchHistory;
+        const filteredHistory = searchValue
+          ? [
+              ...searchHistory.filter(city =>
+                city.toLowerCase().startsWith(searchValue.toLowerCase()),
+              ),
+              ...searchHistory.filter(
+                city =>
+                  !city.toLowerCase().startsWith(searchValue.toLowerCase()) &&
+                  city.toLowerCase().includes(searchValue.toLowerCase()),
+              ),
+            ]
+          : searchHistory;
 
         dispatch(
           saveSearchHistory({
-            city: trimmedQuery,
-            history: updatedHistory,
+            city: searchValue,
+            history: filteredHistory,
           }),
         );
       }

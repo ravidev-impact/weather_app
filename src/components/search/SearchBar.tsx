@@ -19,7 +19,7 @@ import {RootState} from '../../store';
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
-  onSubmit: () => void;
+  onSubmit: (query?: string) => void;
   error?: string;
   onFocusChange?: (focused: boolean) => void;
 }
@@ -37,9 +37,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
     (state: RootState) => state.searchHistory,
   );
 
+  // Filter and sort searchHistory based on the current input value
+  const filteredHistory = value
+    ? [
+        // Matches that start with the input (case-insensitive)
+        ...searchHistory.filter(city =>
+          city.toLowerCase().startsWith(value.toLowerCase()),
+        ),
+        // Then the rest, excluding already included
+        ...searchHistory.filter(
+          city => !city.toLowerCase().startsWith(value.toLowerCase()),
+        ),
+      ].filter((city, idx, arr) => arr.indexOf(city) === idx) // Remove duplicates
+    : searchHistory;
+
   const handleSelectSuggestion = (suggestion: string) => {
     onChangeText(suggestion);
-    onSubmit();
+    onSubmit(suggestion);
     setIsFocused(false);
     onFocusChange?.(false);
   };
@@ -48,6 +62,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     // Only allow letters, spaces, and hyphens
     const validText = text.replace(/[^a-zA-Z\s-]/g, '');
     onChangeText(validText);
+    if (!isFocused) setIsFocused(true);
   };
 
   const handleFocus = (_e: NativeSyntheticEvent<TextInputFocusEventData>) => {
@@ -72,23 +87,43 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const renderSuggestion = ({item}: {item: string}) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => handleSelectSuggestion(item)}
-      testID={`suggestion-item-${item}`}
-      activeOpacity={0.7}>
-      <Text style={styles.suggestionText}>{item}</Text>
-      <Icon
-        name="arrow-up-right"
-        size={20}
-        color="#fff"
-        style={styles.suggestionArrowIcon}
-      />
-    </TouchableOpacity>
+    <View style={styles.suggestionItem} testID={`suggestion-item-${item}`}>
+      <TouchableOpacity
+        style={{flex: 1}}
+        onPress={() => handleSelectSuggestion(item)}
+        activeOpacity={0.7}>
+        <Text style={styles.suggestionText}>{item}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          onChangeText(item);
+          onSubmit(item);
+        }}
+        activeOpacity={0.7}
+        testID={`suggestion-arrow-${item}`}>
+        <Icon
+          name="arrow-up-right"
+          size={20}
+          color="#fff"
+          style={styles.suggestionArrowIcon}
+        />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.container}>
+      {/* Overlay to close suggestions when clicking outside */}
+      {isFocused && searchHistory.length > 0 && (
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => {
+            setIsFocused(false);
+            onFocusChange?.(false);
+          }}
+        />
+      )}
       <View
         style={[styles.searchContainer, error && styles.searchContainerError]}>
         <TextInput
@@ -131,7 +166,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <View style={styles.suggestionsListContainer}>
             <FlatList
               style={styles.suggestionsScroll}
-              data={searchHistory}
+              data={filteredHistory}
               renderItem={renderSuggestion}
               keyExtractor={item => item}
               keyboardShouldPersistTaps="handled"
@@ -233,6 +268,14 @@ const styles = StyleSheet.create({
   },
   suggestionsScroll: {
     height: 150,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9998,
   },
 });
 
