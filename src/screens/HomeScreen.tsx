@@ -18,6 +18,7 @@ import {
   setLastSearchedCity,
   loadSearchHistory,
   saveSearchHistory,
+  loadSavedHistory,
 } from '../store/searchHistorySlice';
 import SearchBar from '../components/search/SearchBar';
 import WeatherCard from '../components/weather/WeatherCard';
@@ -86,24 +87,19 @@ const HomeScreen: React.FC = () => {
         const resultAction = await dispatch(loadSearchHistory());
 
         if (loadSearchHistory.fulfilled.match(resultAction)) {
-          // If there's a last city, load its weather
+          // Restore the full search history
           if (resultAction.payload.lastCity) {
             setSearchQuery(resultAction.payload.lastCity);
             dispatch(fetchWeather(resultAction.payload.lastCity));
-          } else {
-            // If no last city, search for a default city
-            dispatch(fetchWeather(DEFAULT_CITY));
-            dispatch(setLastSearchedCity(DEFAULT_CITY));
-
-            // Save the default city and empty history to AsyncStorage
+          }
+          // This is the key part: restore the full history
+          if (resultAction.payload.history) {
             dispatch(
-              saveSearchHistory({
-                city: DEFAULT_CITY,
-                history: [DEFAULT_CITY],
+              loadSavedHistory({
+                lastCity: resultAction.payload.lastCity,
+                history: resultAction.payload.history,
               }),
             );
-
-            setSearchQuery(DEFAULT_CITY);
           }
         } else if (historyError) {
           Alert.alert(
@@ -144,27 +140,17 @@ const HomeScreen: React.FC = () => {
     const resultAction = await dispatch(fetchWeather(searchValue));
     if (fetchWeather.fulfilled.match(resultAction)) {
       dispatch(setLastSearchedCity(searchValue));
-      if (searchHistory) {
-        const filteredHistory = searchValue
-          ? [
-              ...searchHistory.filter(city =>
-                city.toLowerCase().startsWith(searchValue.toLowerCase()),
-              ),
-              ...searchHistory.filter(
-                city =>
-                  !city.toLowerCase().startsWith(searchValue.toLowerCase()) &&
-                  city.toLowerCase().includes(searchValue.toLowerCase()),
-              ),
-            ]
-          : searchHistory;
+      const updatedHistory = [
+        searchValue,
+        ...searchHistory.filter(city => city !== searchValue),
+      ].slice(0, 5);
 
-        dispatch(
-          saveSearchHistory({
-            city: searchValue,
-            history: filteredHistory,
-          }),
-        );
-      }
+      dispatch(
+        saveSearchHistory({
+          city: searchValue,
+          history: updatedHistory,
+        }),
+      );
     }
   };
 
